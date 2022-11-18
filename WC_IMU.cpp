@@ -25,7 +25,7 @@ WC_IMU::WC_IMU(){
     PR[1][1] = 0.0f;
 };
 
-void WC_IMU::init(){
+void WC_IMU::init(bool yesAdaptiveZ){
     if(RawRoll ==0 || RawPitch == 0){
         Serial.println("ICM42688 not begin!");
     }
@@ -34,18 +34,24 @@ void WC_IMU::init(){
     timer = micros();
     UItimerP = millis();
     UItimerR = millis();
+    AdaptiveZ = yesAdaptiveZ;
 };
 
-void WC_IMU::updateICM42688(double aX,double aY,double aZ,double gX,double gY,double gZ,int16_t t){
-    accX = aX;
-    accY = aY;
-    accZ = aZ;
-    tempRaw = t;
-    gyroZ = gZ;
-    RawRoll = atan2(accY, accZ) * RAD_TO_DEG; // deg
-    RawPitch = atan(-accX / sqrt(accY * accY + accZ * accZ)) * RAD_TO_DEG; // deg
-    angularvelocityX = gX; // deg/s
-    angularvelocityY = gY; // deg/s
+void WC_IMU::updateICM42688(double acc[3],double gyro[3],int16_t t){
+    int G;
+    for(G = 0; G < 6; G++){
+        if(G<3){
+            if(acc[G]>500) break;
+        }else{
+            if(acc[G-3]<-500) break;
+        }
+    }
+    // Serial.print("Acc is at: ");Serial.println(G);
+    RawRoll = atan2(acc[1], acc[2]) * RAD_TO_DEG; // deg
+    RawPitch = atan(-acc[0] / sqrt(acc[1] * acc[1] + acc[2] * acc[2])) * RAD_TO_DEG; // deg
+    angularvelocityX = gyro[0]; // deg/s
+    angularvelocityY = gyro[1]; // deg/s
+    
     IMUupdated = true;
 };
 

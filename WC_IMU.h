@@ -6,9 +6,10 @@
 
 class WC_IMU{
 public:
+    //Kalman Filter
     WC_IMU();
-    void init();
-    void updateICM42688(double aX,double aY,double aZ,double gX,double gY,double gZ,int16_t t);
+    void init(bool yesAdaptiveZ = false);
+    void updateICM42688(double acc[3],double gyro[3],int16_t t);
     void doKalman();
     void doAvg();
     float getKalman(bool isRoll);
@@ -26,7 +27,7 @@ public:
     float getQangle();
     float getQbias();
     float getRmeasure();
-
+    //Serial Recieve
     void readSerialData(unsigned char rc);
     void parseData();
     float RecievedIMUData[4];
@@ -53,6 +54,7 @@ private:
     double gyroX, gyroY, gyroZ;
     int16_t tempRaw;
     bool IMUupdated;
+    bool AdaptiveZ;
     //Serial Recieve
     const int numChars = 32;
     char receivedChars[32];

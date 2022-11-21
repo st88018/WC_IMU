@@ -27,6 +27,7 @@ public:
     float getQangle();
     float getQbias();
     float getRmeasure();
+    float RawPitch, RawRoll;
     //Serial Recieve
     void readSerialData(unsigned char rc);
     void parseData();
@@ -35,7 +36,6 @@ public:
     int Gdir;
 private:
     //Kalman Filter
-    float RawPitch, RawRoll;
     float Pitch,Roll;
     float AvgPitch,AvgRoll;
     float PitchA[500],RollA[500];

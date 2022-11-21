@@ -46,8 +46,9 @@ void WC_IMU::updateICM42688(double acc[3],double gyro[3],int16_t t){
         }
     }
     // Serial.print("Acc is at: ");Serial.println(Gdir);
-    RawRoll = atan2(acc[1], acc[2]) * RAD_TO_DEG; // deg
-    RawPitch = atan(-acc[0] / sqrt(acc[1] * acc[1] + acc[2] * acc[2])) * RAD_TO_DEG; // deg
+    // Now restrict Roll to ±90deg
+    RawRoll = atan(acc[1] / sqrt(acc[0] * acc[0] + acc[2] * acc[2])) * RAD_TO_DEG; // deg
+    RawPitch = atan2(-acc[0], acc[2]) * RAD_TO_DEG; // deg
     angularvelocityX = gyro[0]; // deg/s
     angularvelocityY = gyro[1]; // deg/s
     
@@ -58,15 +59,15 @@ void WC_IMU::doKalman(){
     if(IMUupdated){
         dt = (double)(micros()-timer) /1000000;
         timer = micros();
-        if((RawRoll < -90 && Roll >90) || (RawRoll > 90 && Roll < -90)){
-            Roll = RawRoll;
+        if((RawPitch < -90 && Pitch >90) || (RawPitch > 90 && Pitch < -90)){
+            Pitch = RawPitch;
         }else{
-            Roll = getKalman(true);
+            Pitch = getKalman(false);
         }
-        if (abs(Roll) > 90 ){
-            angularvelocityY = -angularvelocityY;
+        if (abs(Pitch) > 90 ){
+            angularvelocityX = -angularvelocityX;
         }
-        Pitch = getKalman(false);
+        Roll = getKalman(true);
         doAvg();
         IMUupdated = false;
     }else{

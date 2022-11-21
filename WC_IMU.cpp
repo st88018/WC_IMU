@@ -38,15 +38,14 @@ void WC_IMU::init(bool yesAdaptiveZ){
 };
 
 void WC_IMU::updateICM42688(double acc[3],double gyro[3],int16_t t){
-    int G;
-    for(G = 0; G < 6; G++){
-        if(G<3){
-            if(acc[G]>500) break;
+    for(Gdir = 0; Gdir < 6; Gdir++){
+        if(Gdir<3){
+            if(acc[Gdir]>500) break;
         }else{
-            if(acc[G-3]<-500) break;
+            if(acc[Gdir-3]<-500) break;
         }
     }
-    // Serial.print("Acc is at: ");Serial.println(G);
+    // Serial.print("Acc is at: ");Serial.println(Gdir);
     RawRoll = atan2(acc[1], acc[2]) * RAD_TO_DEG; // deg
     RawPitch = atan(-acc[0] / sqrt(acc[1] * acc[1] + acc[2] * acc[2])) * RAD_TO_DEG; // deg
     angularvelocityX = gyro[0]; // deg/s
@@ -231,16 +230,23 @@ void WC_IMU::parseData() {      // split the data into its parts
         char * strtokIndx; // this is used by strtok() as an index
 
         strtokIndx = strtok(receivedChars,",");      // get the first part - the string
-        RecievedIMUData[0] = atof(strtokIndx);
+        if(strtokIndx != NULL) RecievedIMUData[0] = atof(strtokIndx);
     
         strtokIndx = strtok(NULL, ","); // this continues where the previous call left off
-        RecievedIMUData[1] = atof(strtokIndx);     // convert this part to an integer
+        if(strtokIndx != NULL) RecievedIMUData[1] = atof(strtokIndx);     // convert this part to an integer
 
         strtokIndx = strtok(NULL, ",");
-        RecievedIMUData[2] = atof(strtokIndx);     // convert this part to a float
+        if(strtokIndx != NULL) RecievedIMUData[2] = atof(strtokIndx);     // convert this part to a float
 
         strtokIndx = strtok(NULL, ",");
-        RecievedIMUData[3] = atof(strtokIndx);     // convert this part to a float
+        if(strtokIndx != NULL) RecievedIMUData[3] = atof(strtokIndx);     // convert this part to a float
+
+        strtokIndx = strtok(NULL, ",");
+        if(strtokIndx != NULL) RecievedIMUData[4] = atof(strtokIndx);     // convert this part to a float
+
+        strtokIndx = strtok(NULL, ",");
+        if(strtokIndx != NULL) RecievedIMUData[5] = atof(strtokIndx);     // convert this part to a float
+        
         newData = false;
     }
 }

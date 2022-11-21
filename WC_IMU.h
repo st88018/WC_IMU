@@ -30,8 +30,9 @@ public:
     //Serial Recieve
     void readSerialData(unsigned char rc);
     void parseData();
-    float RecievedIMUData[4];
+    float RecievedIMUData[6];
     boolean newData = false;
+    int Gdir;
 private:
     //Kalman Filter
     float RawPitch, RawRoll;
@@ -52,11 +53,10 @@ private:
     bool UIP, UIR;
     double accX, accY, accZ;
     double gyroX, gyroY, gyroZ;
-    int16_t tempRaw;
     bool IMUupdated;
     bool AdaptiveZ;
     //Serial Recieve
-    const int numChars = 32;
-    char receivedChars[32];
+    const int numChars = 64;
+    char receivedChars[64];
 };
 #endif

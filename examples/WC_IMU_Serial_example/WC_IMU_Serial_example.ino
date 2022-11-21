@@ -4,7 +4,7 @@ WC_IMU WC_IMU;
 
 void setup() {
   Serial.begin(115200);
-  Serial1.begin(115200,SERIAL_8N1,38,39);
+  Serial1.begin(921600,SERIAL_8N1,38,39);
 }
 
 void loop() {
@@ -23,5 +23,9 @@ void showData() {
   Serial.print(" KalUIRoll: ");
   Serial.print(WC_IMU.RecievedIMUData[2],4);
   Serial.print(" KalUIPitch: ");
-  Serial.println(WC_IMU.RecievedIMUData[3],4);
+  Serial.print(WC_IMU.RecievedIMUData[3],4);
+  Serial.print(" Temp: ");
+  Serial.print(WC_IMU.RecievedIMUData[4],2);
+  Serial.print(" Gdir: ");
+  Serial.println(WC_IMU.RecievedIMUData[5]);
 }

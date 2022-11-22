@@ -9,7 +9,7 @@ public:
     //Kalman Filter
     WC_IMU();
     void init(bool yesAdaptiveZ = false);
-    void updateICM42688(double acc[3],double gyro[3],int16_t t);
+    void updateICM42688(double acc[3],double gyro[3]);
     void doKalman();
     void doAvg();
     float getKalman(bool isRoll);

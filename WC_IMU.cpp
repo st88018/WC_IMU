@@ -37,7 +37,7 @@ void WC_IMU::init(bool yesAdaptiveZ){
     AdaptiveZ = yesAdaptiveZ;
 };
 
-void WC_IMU::updateICM42688(double acc[3],double gyro[3],int16_t t){
+void WC_IMU::updateICM42688(double acc[3],double gyro[3]){
     for(Gdir = 0; Gdir < 6; Gdir++){
         if(Gdir<3){
             if(acc[Gdir]>500) break;

@@ -8,26 +8,29 @@ class WC_IMU{
 public:
     //Kalman Filter
     WC_IMU();
-    void init(bool yesAdaptiveZ = false);
+    void init();
     void updateICM42688(double acc[3],double gyro[3]);
     void doKalman();
     void doAvg();
-    float getKalman(bool isRoll);
-    float getPitch();
-    float getRoll();
-    float getPitchAvg();
-    float getRollAvg();
+    void getKalman();
+    float getX();
+    float getY();
+    float getZ();
+    float getXAvg();
+    float getYAvg();
+    float getZAvg();
     void setQangle(float Q_angle);
     void setQbias(float Q_bias);
     void setRmeasure(float R_measure);
     void setAvgScale(int AvgScale);
     void setUIthreshold(float UI_Threshold);
-    float getUIPitch();
-    float getUIRoll();
+    float getUIX();
+    float getUIY();
+    float getUIZ();
     float getQangle();
     float getQbias();
     float getRmeasure();
-    float RawPitch, RawRoll;
+    float RawXAng, RawYAng, RawZAng;
     //Serial Recieve
     void readSerialData(unsigned char rc);
     void parseData();
@@ -36,25 +39,24 @@ public:
     int Gdir;
 private:
     //Kalman Filter
-    float Pitch,Roll;
-    float AvgPitch,AvgRoll;
-    float PitchA[500],RollA[500];
+    float XAng, YAng, ZAng;
+    float AvgXAng,AvgYAng,AvgZAng;
+    float XA[500],YA[500],ZA[500];
     int AvgScale;
     float UI_Threshold;
     double dt;
     float Q_angle; // Process noise variance for the accelerometer
     float Q_bias; // Process noise variance for the gyro bias
     float R_measure; // Measurement noise variance - this is actually the variance of the measurement noise
-    float biasR,biasP;
-    float angularvelocityX,angularvelocityY;
-    float PP[2][2], PR[2][2];
-    int timer,UItimerP,UItimerR;
-    float UIPitch[2],UIRoll[2];
-    bool UIP, UIR;
+    float biasX, biasY, biasZ;
+    float angularvelocityX, angularvelocityY, angularvelocityZ;
+    float PX[2][2], PY[2][2], PZ[2][2];
+    int timer, UItimerX, UItimerY, UItimerZ;
+    float UIX[2],UIY[2],UIZ[2];
+    bool uix, uiy, uiz;
     double accX, accY, accZ;
     double gyroX, gyroY, gyroZ;
     bool IMUupdated;
-    bool AdaptiveZ;
     //Serial Recieve
     const int numChars = 64;
     char receivedChars[64];

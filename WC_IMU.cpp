@@ -5,36 +5,42 @@ WC_IMU::WC_IMU(){
     Q_bias = 0.003f;
     R_measure = 0.03f;
 
-    RawRoll = 0.0f;
-    RawPitch = 0.0f;
-    Pitch = 0.0f;
-    Roll = 0.0f;
-    biasP = 0.0f;
-    biasR = 0.0f;
+    RawXAng = 0.0f;
+    RawYAng = 0.0f;
+    YAng = 0.0f;
+    XAng = 0.0f;
+    biasY = 0.0f;
+    biasX = 0.0f;
     AvgScale = 50;
     UI_Threshold = 0.05;
 
-    PP[0][0] = 0.0f;
-    PP[0][1] = 0.0f;
-    PP[1][0] = 0.0f;
-    PP[1][1] = 0.0f;
+    PZ[0][0] = 0.0f;
+    PZ[0][1] = 0.0f;
+    PZ[1][0] = 0.0f;
+    PZ[1][1] = 0.0f;
 
-    PR[0][0] = 0.0f;
-    PR[0][1] = 0.0f;
-    PR[1][0] = 0.0f;
-    PR[1][1] = 0.0f;
+    PY[0][0] = 0.0f;
+    PY[0][1] = 0.0f;
+    PY[1][0] = 0.0f;
+    PY[1][1] = 0.0f;
+
+    PX[0][0] = 0.0f;
+    PX[0][1] = 0.0f;
+    PX[1][0] = 0.0f;
+    PX[1][1] = 0.0f;
 };
 
-void WC_IMU::init(bool yesAdaptiveZ){
-    if(RawRoll ==0 || RawPitch == 0){
+void WC_IMU::init(){
+    if(RawXAng ==0 || RawYAng == 0 || RawZAng == 0){
         Serial.println("ICM42688 not begin!");
     }
-    Roll = RawRoll;
-    Pitch = RawPitch;
+    XAng = RawXAng;
+    YAng = RawYAng;
+    ZAng = RawZAng;
     timer = micros();
-    UItimerP = millis();
-    UItimerR = millis();
-    AdaptiveZ = yesAdaptiveZ;
+    UItimerX = millis();
+    UItimerY = millis();
+    UItimerZ = millis();
 };
 
 void WC_IMU::updateICM42688(double acc[3],double gyro[3]){
@@ -46,11 +52,12 @@ void WC_IMU::updateICM42688(double acc[3],double gyro[3]){
         }
     }
     // Serial.print("Acc is at: ");Serial.println(Gdir);
-    // Now restrict Roll to ±90deg
-    RawRoll = atan(acc[1] / sqrt(acc[0] * acc[0] + acc[2] * acc[2])) * RAD_TO_DEG; // deg
-    RawPitch = atan2(-acc[0], acc[2]) * RAD_TO_DEG; // deg
+    RawXAng = atan2(acc[1], acc[2]) * RAD_TO_DEG; // deg
+    RawYAng = atan2(acc[2], acc[0]) * RAD_TO_DEG; // deg
+    RawZAng = atan2(acc[0], acc[1]) * RAD_TO_DEG; // deg
     angularvelocityX = gyro[0]; // deg/s
     angularvelocityY = gyro[1]; // deg/s
+    angularvelocityZ = gyro[2]; // deg/s
     
     IMUupdated = true;
 };
@@ -59,15 +66,7 @@ void WC_IMU::doKalman(){
     if(IMUupdated){
         dt = (double)(micros()-timer) /1000000;
         timer = micros();
-        if((RawPitch < -90 && Pitch >90) || (RawPitch > 90 && Pitch < -90)){
-            Pitch = RawPitch;
-        }else{
-            Pitch = getKalman(false);
-        }
-        if (abs(Pitch) > 90 ){
-            angularvelocityX = -angularvelocityX;
-        }
-        Roll = getKalman(true);
+        getKalman();
         doAvg();
         IMUupdated = false;
     }else{
@@ -75,117 +74,164 @@ void WC_IMU::doKalman(){
     }
 };
 
-float WC_IMU::getKalman(bool isRoll){
-    if(isRoll){
-        Roll += dt * (angularvelocityX-biasR);
-        PR[0][0] += dt * (dt*PR[1][1] - PR[0][1] - PR[1][0] + Q_angle);
-        PR[0][1] -= dt * PR[1][1];
-        PR[1][0] -= dt * PR[1][1];
-        PR[1][1] += Q_bias * dt;
-        float S = PR[0][0] + R_measure;
-        float K[2]; // Kalman gain
-        K[0] = PR[0][0] / S;
-        K[1] = PR[1][0] / S;
-        float y = RawRoll - Roll; // Angle difference
-        Roll += K[0] * y;
-        biasR += K[1] * y;
-        float P00_temp = PR[0][0];
-        float P01_temp = PR[0][1];
-        PR[0][0] -= K[0] * P00_temp;
-        PR[0][1] -= K[0] * P01_temp;
-        PR[1][0] -= K[1] * P00_temp;
-        PR[1][1] -= K[1] * P01_temp;
-        return Roll;
-    }else{
-        Pitch += dt * (angularvelocityY-biasP);
-        PP[0][0] += dt * (dt*PP[1][1] - PP[0][1] - PP[1][0] + Q_angle);
-        PP[0][1] -= dt * PP[1][1];
-        PP[1][0] -= dt * PP[1][1];
-        PP[1][1] += Q_bias * dt;
-        float S = PP[0][0] + R_measure;
-        float K[2]; // Kalman gain
-        K[0] = PP[0][0] / S;
-        K[1] = PP[1][0] / S;
-        float y = RawPitch - Pitch; // Angle difference
-        Pitch += K[0] * y;
-        biasP += K[1] * y;
-        float P00_temp = PR[0][0];
-        float P01_temp = PR[0][1];
-        PP[0][0] -= K[0] * P00_temp;
-        PP[0][1] -= K[0] * P01_temp;
-        PP[1][0] -= K[1] * P00_temp;
-        PP[1][1] -= K[1] * P01_temp;
-        return Pitch;
-    }
+void WC_IMU::getKalman(){
+
+    // XAng += dt * (angularvelocityX-biasX);
+    // PX[0][0] += dt * (dt*PX[1][1] - PX[0][1] - PX[1][0] + Q_angle);
+    // PX[0][1] -= dt * PX[1][1];
+    // PX[1][0] -= dt * PX[1][1];
+    // PX[1][1] += Q_bias * dt;
+    // float Sx = PX[0][0] + R_measure;
+    // float Kx[2]; // Kalman gain
+    // Kx[0] = PX[0][0] / Sx;
+    // Kx[1] = PX[1][0] / Sx;
+    // float yx = RawXAng - XAng; // Angle difference
+    // XAng += Kx[0] * yx;
+    // biasX += Kx[1] * yx;
+    // float Px00_temp = PX[0][0];
+    // float Px01_temp = PX[0][1];
+    // PX[0][0] -= Kx[0] * Px00_temp;
+    // PX[0][1] -= Kx[0] * Px01_temp;
+    // PX[1][0] -= Kx[1] * Px00_temp;
+    // PX[1][1] -= Kx[1] * Px01_temp;
+
+    YAng += dt * (angularvelocityY-biasY);
+    PY[0][0] += dt * (dt*PY[1][1] - PY[0][1] - PY[1][0] + Q_angle);
+    PY[0][1] -= dt * PY[1][1];
+    PY[1][0] -= dt * PY[1][1];
+    PY[1][1] += Q_bias * dt;
+    float Sy = PY[0][0] + R_measure;
+    float Ky[2]; // Kalman gain
+    Ky[0] = PY[0][0] / Sy;
+    Ky[1] = PY[1][0] / Sy;
+    float yy = RawYAng - YAng; // Angle difference
+    YAng += Ky[0] * yy;
+    biasY += Ky[1] * yy;
+    float Py00_temp = PY[0][0];
+    float Py01_temp = PY[0][1];
+    PY[0][0] -= Ky[0] * Py00_temp;
+    PY[0][1] -= Ky[0] * Py01_temp;
+    PY[1][0] -= Ky[1] * Py00_temp;
+    PY[1][1] -= Ky[1] * Py01_temp;
+
+    // ZAng += dt * (angularvelocityZ-biasZ);
+    // PZ[0][0] += dt * (dt*PZ[1][1] - PZ[0][1] - PZ[1][0] + Q_angle);
+    // PZ[0][1] -= dt * PZ[1][1];
+    // PZ[1][0] -= dt * PZ[1][1];
+    // PZ[1][1] += Q_bias * dt;
+    // float Sz = PZ[0][0] + R_measure;
+    // float Kz[2]; // Kalman gain
+    // Kz[0] = PZ[0][0] / Sz;
+    // Kz[1] = PZ[1][0] / Sz;
+    // float yz = RawZAng - ZAng; // Angle difference
+    // ZAng += Kz[0] * yz;
+    // biasZ += Kz[1] * yz;
+    // float Pz00_temp = PZ[0][0];
+    // float Pz01_temp = PZ[0][1];
+    // PZ[0][0] -= Kz[0] * Pz00_temp;
+    // PZ[0][1] -= Kz[0] * Pz01_temp;
+    // PZ[1][0] -= Kz[1] * Pz00_temp;
+    // PZ[1][1] -= Kz[1] * Pz01_temp;
 }; 
 
-void WC_IMU::doAvg(){
-    float PitchSum = 0;
-    float RollSum = 0;
+void WC_IMU::doAvg(){  
+    float XSum = 0;
+    float YSum = 0;
+    float ZSum = 0;
     for(int i=0; i<AvgScale-1; i++){
-        PitchA[i] = PitchA[i+1];
-        RollA[i] = RollA[i+1];
-        PitchSum += PitchA[i];
-        RollSum += RollA[i];
+        XA[i] = XA[i+1];
+        YA[i] = YA[i+1];
+        ZA[i] = ZA[i+1];
+        XSum += XA[i];
+        YSum += YA[i];
+        ZSum += ZA[i];
     }
-    PitchA[AvgScale-1] = Pitch;
-    RollA[AvgScale-1] = Roll;
-    PitchSum += Pitch;
-    RollSum += Roll;
+    XA[AvgScale-1] = XAng;
+    YA[AvgScale-1] = YAng;
+    ZA[AvgScale-1] = ZAng;
+    XSum += XAng;
+    YSum += YAng;
+    ZSum += ZAng;
 
-    AvgPitch = PitchSum/AvgScale;
-    AvgRoll = RollSum/AvgScale;
+    AvgXAng = XSum/AvgScale;
+    AvgYAng = YSum/AvgScale;
+    AvgZAng = ZSum/AvgScale;
 }
 
-float WC_IMU::getUIPitch(){
-    if(AvgPitch>UIPitch[0]){
-        UIPitch[0] = AvgPitch;
+float WC_IMU::getUIX(){
+    if(AvgXAng>UIX[0]){
+        UIX[0] = AvgXAng;
     }
-    if(AvgPitch<UIPitch[1]){
-        UIPitch[1] = AvgPitch;
+    if(AvgXAng<UIX[1]){
+        UIX[1] = AvgXAng;
     }
-    if(UIP){
-        if((abs(UIPitch[1]-UIPitch[0]))<UI_Threshold){
+    if(uix){
+        if((abs(UIX[1]-UIX[0]))<UI_Threshold){
             // Serial.print("[0]: "); Serial.print(UIPitch[0],4);  Serial.print("\t");
             // Serial.print("[1]: "); Serial.print(UIPitch[1],4);  Serial.print("\t");
-            return ((UIPitch[0]+UIPitch[1])/2);
+            return ((UIX[0]+UIX[1])/2);
         }else{
-            UItimerP = millis();
-            UIPitch[0] = AvgPitch;
-            UIPitch[1] = AvgPitch;
-            UIP = false;
-            return AvgPitch;
+            UItimerX = millis();
+            UIX[0] = AvgXAng;
+            UIX[1] = AvgXAng;
+            uix = false;
+            return AvgXAng;
         }
     }else{
-        if (millis() - UItimerP > 1000){
-            UIP = true;
+        if (millis() - UItimerX > 1000){
+            uix = true;
         }
-        return AvgPitch;
+        return AvgXAng;
     }
 }
 
-float WC_IMU::getUIRoll(){
-    if(AvgRoll>UIRoll[0]){
-        UIRoll[0] = AvgRoll;
+float WC_IMU::getUIY(){
+    if(AvgYAng>UIY[0]){
+        UIY[0] = AvgYAng;
     }
-    if(AvgRoll<UIRoll[1]){
-        UIRoll[1] = AvgRoll;
+    if(AvgYAng<UIY[1]){
+        UIY[1] = AvgYAng;
     }
-    if(UIR){
-        if((abs(UIRoll[1]-UIRoll[0]))<UI_Threshold){
-            return ((UIRoll[1]+UIRoll[0])/2);
+    if(uiy){
+        if((abs(UIY[1]-UIY[0]))<UI_Threshold){
+            return ((UIY[1]+UIY[0])/2);
         }else{
-            UItimerR = millis();
-            UIRoll[0] = AvgRoll;
-            UIRoll[1] = AvgRoll;
-            UIR = false;
-            return AvgRoll;
+            UItimerY = millis();
+            UIY[0] = AvgYAng;
+            UIY[1] = AvgYAng;
+            uiy = false;
+            return AvgYAng;
         }
     }else{
-        if (millis() - UItimerR > 1000){
-            UIR = true;
+        if (millis() - UItimerY > 1000){
+            uiy = true;
         }
-        return AvgRoll;
+        return AvgYAng;
+    }
+}
+
+float WC_IMU::getUIZ(){
+    if(AvgYAng>UIZ[0]){
+        UIZ[0] = AvgYAng;
+    }
+    if(AvgYAng<UIZ[1]){
+        UIZ[1] = AvgZAng;
+    }
+    if(uiz){
+        if((abs(UIZ[1]-UIZ[0]))<UI_Threshold){
+            return ((UIZ[1]+UIZ[0])/2);
+        }else{
+            UItimerZ = millis();
+            UIZ[0] = AvgZAng;
+            UIZ[1] = AvgZAng;
+            uiz = false;
+            return AvgZAng;
+        }
+    }else{
+        if (millis() - UItimerZ > 1000){
+            uiz = true;
+        }
+        return AvgZAng;
     }
 }
 
@@ -194,10 +240,12 @@ void WC_IMU::setQangle(float Q_angle) { this->Q_angle = Q_angle; };
 void WC_IMU::setQbias(float Q_bias) { this->Q_bias = Q_bias; };
 void WC_IMU::setRmeasure(float R_measure) { this->R_measure = R_measure; };
 void WC_IMU::setAvgScale(int AvgScale) { this->AvgScale = AvgScale; };
-float WC_IMU::getPitch() { return this->Pitch; };
-float WC_IMU::getRoll() { return this->Roll; };
-float WC_IMU::getPitchAvg() { return this->AvgPitch; };
-float WC_IMU::getRollAvg() { return this->AvgRoll; };
+float WC_IMU::getX() { return this->XAng; };
+float WC_IMU::getY() { return this->YAng; };
+float WC_IMU::getZ() { return this->ZAng; };
+float WC_IMU::getXAvg() { return this->AvgXAng; };
+float WC_IMU::getYAvg() { return this->AvgYAng; };
+float WC_IMU::getZAvg() { return this->AvgZAng; };
 float WC_IMU::getQangle() { return this->Q_angle; };
 float WC_IMU::getQbias() { return this->Q_bias; };
 float WC_IMU::getRmeasure() { return this->R_measure; };

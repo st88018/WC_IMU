@@ -11,8 +11,8 @@ WC_IMU::WC_IMU(){
     XAng = 0.0f;
     biasY = 0.0f;
     biasX = 0.0f;
-    AvgScale = 50;
-    UI_Threshold = 0.05;
+    AvgScale = 300;
+    UI_Threshold = 0.75;
 
     PZ[0][0] = 0.0f;
     PZ[0][1] = 0.0f;
@@ -53,8 +53,8 @@ void WC_IMU::updateICM42688(double acc[3],double gyro[3]){
     }
     // Serial.print("Acc is at: ");Serial.println(Gdir);
     RawXAng = atan2(acc[1], acc[2]) * RAD_TO_DEG; // deg
-    RawYAng = atan2(acc[2], acc[0]) * RAD_TO_DEG; // deg
-    RawZAng = atan2(acc[0], acc[1]) * RAD_TO_DEG; // deg
+    RawYAng = atan2(-acc[0], acc[2]) * RAD_TO_DEG; // deg
+    RawZAng = atan2(-acc[0], -acc[1]) * RAD_TO_DEG; // deg
     angularvelocityX = gyro[0]; // deg/s
     angularvelocityY = gyro[1]; // deg/s
     angularvelocityZ = gyro[2]; // deg/s
@@ -76,24 +76,24 @@ void WC_IMU::doKalman(){
 
 void WC_IMU::getKalman(){
 
-    // XAng += dt * (angularvelocityX-biasX);
-    // PX[0][0] += dt * (dt*PX[1][1] - PX[0][1] - PX[1][0] + Q_angle);
-    // PX[0][1] -= dt * PX[1][1];
-    // PX[1][0] -= dt * PX[1][1];
-    // PX[1][1] += Q_bias * dt;
-    // float Sx = PX[0][0] + R_measure;
-    // float Kx[2]; // Kalman gain
-    // Kx[0] = PX[0][0] / Sx;
-    // Kx[1] = PX[1][0] / Sx;
-    // float yx = RawXAng - XAng; // Angle difference
-    // XAng += Kx[0] * yx;
-    // biasX += Kx[1] * yx;
-    // float Px00_temp = PX[0][0];
-    // float Px01_temp = PX[0][1];
-    // PX[0][0] -= Kx[0] * Px00_temp;
-    // PX[0][1] -= Kx[0] * Px01_temp;
-    // PX[1][0] -= Kx[1] * Px00_temp;
-    // PX[1][1] -= Kx[1] * Px01_temp;
+    XAng += dt * (angularvelocityX-biasX);
+    PX[0][0] += dt * (dt*PX[1][1] - PX[0][1] - PX[1][0] + Q_angle);
+    PX[0][1] -= dt * PX[1][1];
+    PX[1][0] -= dt * PX[1][1];
+    PX[1][1] += Q_bias * dt;
+    float Sx = PX[0][0] + R_measure;
+    float Kx[2]; // Kalman gain
+    Kx[0] = PX[0][0] / Sx;
+    Kx[1] = PX[1][0] / Sx;
+    float yx = RawXAng - XAng; // Angle difference
+    XAng += Kx[0] * yx;
+    biasX += Kx[1] * yx;
+    float Px00_temp = PX[0][0];
+    float Px01_temp = PX[0][1];
+    PX[0][0] -= Kx[0] * Px00_temp;
+    PX[0][1] -= Kx[0] * Px01_temp;
+    PX[1][0] -= Kx[1] * Px00_temp;
+    PX[1][1] -= Kx[1] * Px01_temp;
 
     YAng += dt * (angularvelocityY-biasY);
     PY[0][0] += dt * (dt*PY[1][1] - PY[0][1] - PY[1][0] + Q_angle);
@@ -114,24 +114,24 @@ void WC_IMU::getKalman(){
     PY[1][0] -= Ky[1] * Py00_temp;
     PY[1][1] -= Ky[1] * Py01_temp;
 
-    // ZAng += dt * (angularvelocityZ-biasZ);
-    // PZ[0][0] += dt * (dt*PZ[1][1] - PZ[0][1] - PZ[1][0] + Q_angle);
-    // PZ[0][1] -= dt * PZ[1][1];
-    // PZ[1][0] -= dt * PZ[1][1];
-    // PZ[1][1] += Q_bias * dt;
-    // float Sz = PZ[0][0] + R_measure;
-    // float Kz[2]; // Kalman gain
-    // Kz[0] = PZ[0][0] / Sz;
-    // Kz[1] = PZ[1][0] / Sz;
-    // float yz = RawZAng - ZAng; // Angle difference
-    // ZAng += Kz[0] * yz;
-    // biasZ += Kz[1] * yz;
-    // float Pz00_temp = PZ[0][0];
-    // float Pz01_temp = PZ[0][1];
-    // PZ[0][0] -= Kz[0] * Pz00_temp;
-    // PZ[0][1] -= Kz[0] * Pz01_temp;
-    // PZ[1][0] -= Kz[1] * Pz00_temp;
-    // PZ[1][1] -= Kz[1] * Pz01_temp;
+    ZAng += dt * (angularvelocityZ-biasZ);
+    PZ[0][0] += dt * (dt*PZ[1][1] - PZ[0][1] - PZ[1][0] + Q_angle);
+    PZ[0][1] -= dt * PZ[1][1];
+    PZ[1][0] -= dt * PZ[1][1];
+    PZ[1][1] += Q_bias * dt;
+    float Sz = PZ[0][0] + R_measure;
+    float Kz[2]; // Kalman gain
+    Kz[0] = PZ[0][0] / Sz;
+    Kz[1] = PZ[1][0] / Sz;
+    float yz = RawZAng - ZAng; // Angle difference
+    ZAng += Kz[0] * yz;
+    biasZ += Kz[1] * yz;
+    float Pz00_temp = PZ[0][0];
+    float Pz01_temp = PZ[0][1];
+    PZ[0][0] -= Kz[0] * Pz00_temp;
+    PZ[0][1] -= Kz[0] * Pz01_temp;
+    PZ[1][0] -= Kz[1] * Pz00_temp;
+    PZ[1][1] -= Kz[1] * Pz01_temp;
 }; 
 
 void WC_IMU::doAvg(){  

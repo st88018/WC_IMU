@@ -59,29 +59,36 @@ void Core1code( void * pvParameters ){
 }
 void Core2code( void * pvParameters ){
   kalman.init();
-  kalman.setAvgScale(500);
   for(;;){
-    // kalman.doKalman();
-    // KalX = kalman.getX();
-    // KalY = kalman.getY();
-    // KalZ = kalman.getZ();
-    // KalAvgX = kalman.getXAvg();
-    // KalAvgY = kalman.getYAvg();
-    // KalAvgZ = kalman.getZAvg();
-    // KalUIX = kalman.getUIX();
-    // KalUIY = kalman.getUIY();
-    // KalUIZ = kalman.getUIZ();
+    kalman.doKalman();
+    KalX = kalman.getX();
+    KalY = kalman.getY();
+    KalZ = kalman.getZ();
+    KalAvgX = kalman.getXAvg();
+    KalAvgY = kalman.getYAvg();
+    KalAvgZ = kalman.getZAvg();
+    KalUIX = kalman.getUIX();
+    KalUIY = kalman.getUIY();
+    KalUIZ = kalman.getUIZ();
   }
 }
 void loop(){}
 void plotter(){
-  Serial.print(kalman.RawXAng,4); Serial.print("\t");
-  Serial.print(kalman.RawYAng,4); Serial.print("\t");
-  Serial.print(kalman.RawZAng,4); Serial.print("\t");
+  Serial.print(KalX,4); Serial.print("\t");
+  Serial.print(KalY,4); Serial.print("\t");
+  Serial.print(KalZ,4); Serial.print("\t");
+  Serial.print("\t");
+  Serial.print(KalUIX,4); Serial.print("\t");
+  Serial.print(KalUIY,4); Serial.print("\t");
+  Serial.print(KalUIZ,4); Serial.print("\t");
   Serial.print("\t");
   Serial.print(acc[0]); Serial.print("\t");
   Serial.print(acc[1]); Serial.print("\t");
   Serial.print(acc[2]); Serial.print("\t");
+  Serial.print("\t");
+  Serial.print(gyro[0]); Serial.print("\t");
+  Serial.print(gyro[1]); Serial.print("\t");
+  Serial.print(gyro[2]); Serial.print("\t");
   Serial.print("\t");
   // Serial.print(kalmaintimer[1]-kalmaintimer[0]);
   Serial.print("\r\n");
@@ -117,9 +124,13 @@ void OutputData(){
   dataString += ",";
   dataString += String(KalAvgY,4);
   dataString += ",";
+  dataString += String(KalAvgZ,4);
+  dataString += ",";
   dataString += String(KalUIX,4);
   dataString += ",";
   dataString += String(KalUIY,4);
+  dataString += ",";
+  dataString += String(KalUIZ,4);
   dataString += ",";
   dataString += String(tempRaw,2);
   dataString += ",";

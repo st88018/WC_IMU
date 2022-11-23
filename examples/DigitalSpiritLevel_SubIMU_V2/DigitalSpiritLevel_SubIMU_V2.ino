@@ -63,7 +63,7 @@ void Core2code( void * pvParameters ){
     kalman.doKalman();
     KalX = kalman.getX();
     KalY = kalman.getY();
-    KalZ = kalman.getZ();
+    KalZ = kalman.getZ(); 
     KalAvgX = kalman.getXAvg();
     KalAvgY = kalman.getYAvg();
     KalAvgZ = kalman.getZAvg();

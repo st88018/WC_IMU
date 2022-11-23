@@ -11,7 +11,7 @@ WC_IMU::WC_IMU(){
     XAng = 0.0f;
     biasY = 0.0f;
     biasX = 0.0f;
-    AvgScale = 300;
+    AvgScale = 500;
     UI_Threshold = 0.75;
 
     PZ[0][0] = 0.0f;
@@ -295,6 +295,12 @@ void WC_IMU::parseData() {      // split the data into its parts
 
         strtokIndx = strtok(NULL, ",");
         if(strtokIndx != NULL) RecievedIMUData[5] = atof(strtokIndx);     // convert this part to a float
+        
+        strtokIndx = strtok(NULL, ",");
+        if(strtokIndx != NULL) RecievedIMUData[6] = atof(strtokIndx);     // convert this part to a float
+
+        strtokIndx = strtok(NULL, ",");
+        if(strtokIndx != NULL) RecievedIMUData[7] = atof(strtokIndx);     // convert this part to a float
         
         newData = false;
     }

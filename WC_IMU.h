@@ -34,7 +34,7 @@ public:
     //Serial Recieve
     void readSerialData(unsigned char rc);
     void parseData();
-    float RecievedIMUData[6];
+    float RecievedIMUData[8];
     boolean newData = false;
     int Gdir;
 private:

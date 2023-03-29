@@ -54,7 +54,7 @@ void WC_IMU::updateICM42688(double acc[3],double gyro[3]){
     // Serial.print("Acc is at: ");Serial.println(Gdir);
     RawXAng = atan2(acc[1], acc[2]) * RAD_TO_DEG; // deg
     RawYAng = atan2(-acc[0], acc[2]) * RAD_TO_DEG; // deg
-    RawZAng = atan2(-acc[0], -acc[1]) * RAD_TO_DEG; // deg
+    RawZAng = atan2(acc[0], acc[1]) * RAD_TO_DEG; // deg
     angularvelocityX = gyro[0]; // deg/s
     angularvelocityY = gyro[1]; // deg/s
     angularvelocityZ = gyro[2]; // deg/s

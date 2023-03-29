@@ -302,6 +302,15 @@ void WC_IMU::parseData() {      // split the data into its parts
         strtokIndx = strtok(NULL, ",");
         if(strtokIndx != NULL) RecievedIMUData[7] = atof(strtokIndx);     // convert this part to a float
         
+        strtokIndx = strtok(NULL, ",");
+        if(strtokIndx != NULL) RecievedIMUData[8] = atof(strtokIndx);     // convert this part to a float
+
+        strtokIndx = strtok(NULL, ",");
+        if(strtokIndx != NULL) RecievedIMUData[9] = atof(strtokIndx);     // convert this part to a float
+
+        strtokIndx = strtok(NULL, ",");
+        if(strtokIndx != NULL) RecievedIMUData[10] = atof(strtokIndx);     // convert this part to a float
+
         newData = false;
     }
 }

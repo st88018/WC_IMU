@@ -58,7 +58,7 @@ private:
     double gyroX, gyroY, gyroZ;
     bool IMUupdated;
     //Serial Recieve
-    const int numChars = 64;
-    char receivedChars[64];
+    const int numChars = 128;
+    char receivedChars[128];
 };
 #endif

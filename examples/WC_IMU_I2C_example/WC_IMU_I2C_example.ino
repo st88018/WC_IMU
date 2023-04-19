@@ -1,4 +1,5 @@
 #include <WC_IMU.h>
+#include <Wire.h>
 
 WC_IMU WC_IMU;
 
@@ -6,17 +7,11 @@ void setup() {
   pinMode(1, OUTPUT);
   digitalWrite(1, HIGH);
   Serial.begin(115200);
-  Serial1.begin(921600,SERIAL_8N1,38,39);
-  Serial.print(" STart ");
+  Serial.print(" End setup ");
 }
 
 void loop() {
-  while (Serial1.available() && !WC_IMU.newData) 
-  {
-    WC_IMU.readSerialData(Serial1.read());
-  }
-  WC_IMU.parseData();
-  showData();
+
 }
 void showData() {
   Serial.print("AvgX: ");

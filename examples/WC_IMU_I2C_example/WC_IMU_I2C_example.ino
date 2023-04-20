@@ -1,18 +1,22 @@
 #include <WC_IMU.h>
 #include <Wire.h>
 
+#define SLAVE_ADDR 0x09
+
 WC_IMU WC_IMU;
 
 void setup() {
   pinMode(1, OUTPUT);
   digitalWrite(1, HIGH);
   Serial.begin(115200);
+  Wire.begin();
   Serial.print(" End setup ");
 }
 
 void loop() {
 
 }
+
 void showData() {
   Serial.print("AvgX: ");
   Serial.print(WC_IMU.RecievedIMUData[0],4);

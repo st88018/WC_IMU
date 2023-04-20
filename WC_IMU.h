@@ -3,11 +3,12 @@
 
 #include "Arduino.h"
 #include <Math.h>
+#include "Wire.h"
 
 class WC_IMU{
 public:
     //Kalman Filter
-    WC_IMU();
+    WC_IMU(TwoWire *wire = &Wire);
     void init();
     void updateICM42688(double acc[3],double gyro[3]);
     void doKalman();
@@ -37,6 +38,7 @@ public:
     float RecievedIMUData[11];
     boolean newData = false;
     int Gdir;
+
 private:
     //Kalman Filter
     float XAng, YAng, ZAng;
@@ -60,5 +62,9 @@ private:
     //Serial Recieve
     const int numChars = 128;
     char receivedChars[128];
+    //I2C Recieve
+    uint8_t  _address      = 0x09;
+    uint8_t  _error        = 0;
+    TwoWire*  _wire;
 };
 #endif

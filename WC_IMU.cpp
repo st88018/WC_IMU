@@ -1,6 +1,7 @@
 #include "WC_IMU.h"
 
-WC_IMU::WC_IMU(){
+WC_IMU::WC_IMU(TwoWire *wire){
+    _wire = wire;
     Q_angle = 0.001f;
     Q_bias = 0.003f;
     R_measure = 0.03f;

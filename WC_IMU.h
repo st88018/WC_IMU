@@ -38,6 +38,8 @@ public:
     float RecievedIMUData[11];
     boolean newData = false;
     int Gdir;
+    //I2C Recieve
+    void updateI2CData(uint8_t mode = 1); // mode 1: angles 2: UI 3: acc 4: time
 
 private:
     //Kalman Filter
@@ -66,5 +68,7 @@ private:
     uint8_t  _address      = 0x09;
     uint8_t  _error        = 0;
     TwoWire*  _wire;
+    float readRegfloat(uint8_t reg);
+    uint8_t readReg(uint8_t reg);
 };
 #endif

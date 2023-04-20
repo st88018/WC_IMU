@@ -315,3 +315,50 @@ void WC_IMU::parseData() {      // split the data into its parts
         newData = false;
     }
 }
+
+void WC_IMU::updateI2CData(uint8_t mode){
+    if (mode == 1 || mode == 6){
+        for(int i = 0; i<3; i++){
+            RecievedIMUData[i] = readRegfloat(i+1);
+        }
+    }
+    if (mode == 2 || mode == 6){
+        for(int i = 3; i<6; i++){
+            RecievedIMUData[i] = readRegfloat(i+1);
+        }
+    }
+    if (mode == 3 || mode == 6){
+        for(int i = 6; i<9; i++){
+            RecievedIMUData[i] = readRegfloat(i+1);
+        }
+    }
+    if (mode == 4 || mode == 6){
+        RecievedIMUData[9] = readRegfloat(10);
+    }
+    if (mode == 5 || mode == 6){
+        RecievedIMUData[10] = readReg(11);
+    }
+}
+
+float WC_IMU::readRegfloat(uint8_t reg){
+    _wire->beginTransmission(_address);
+    _wire->write(reg);
+    _error = _wire->endTransmission();
+    _wire->requestFrom(_address, (uint8_t)9);
+    String dataString = "";
+    while (Wire.available()) {
+        char c = Wire.read();
+        dataString = dataString + c;
+    }
+    float deg = dataString.toFloat();
+    return deg;
+}
+
+uint8_t WC_IMU::readReg(uint8_t reg){
+    _wire->beginTransmission(_address);
+    _wire->write(reg);
+    _error = _wire->endTransmission();
+    _wire->requestFrom(_address, (uint8_t)1);
+    uint8_t _data = _wire->read();
+    return _data;
+}

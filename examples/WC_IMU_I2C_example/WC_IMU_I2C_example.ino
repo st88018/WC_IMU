@@ -14,7 +14,9 @@ void setup() {
 }
 
 void loop() {
-
+  delay(50);
+  WC_IMU.updateI2CData(6);  // mode 1: angles 2: UI 3: acc 4: temp 5: GDir 6: all
+  showData();
 }
 
 void showData() {

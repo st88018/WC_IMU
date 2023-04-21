@@ -340,17 +340,24 @@ void WC_IMU::updateI2CData(uint8_t mode){
     }
 }
 
+union floatToBytes {
+  
+    char buffer[4];
+    float floatinput;
+  
+} converter;
+
 float WC_IMU::readRegfloat(uint8_t reg){
     _wire->beginTransmission(_address);
     _wire->write(reg);
     _error = _wire->endTransmission();
-    _wire->requestFrom(_address, (uint8_t)9);
-    String dataString = "";
+    _wire->requestFrom(_address, (uint8_t)4);
+    uint8_t index = 0;
     while (Wire.available()) {
-        char c = Wire.read();
-        dataString = dataString + c;
+        converter.buffer[index] = Wire.read();
+        index++;
     }
-    float deg = dataString.toFloat();
+    float deg = converter.floatinput;
     return deg;
 }
 
